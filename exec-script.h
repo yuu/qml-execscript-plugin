@@ -6,6 +6,8 @@
 #include <QtQml/qqmlextensionplugin.h>
 #include <QtQml/qqml.h>
 
+#include <memory>
+
 class ExecScript : public QObject
 {
 Q_OBJECT
@@ -16,11 +18,9 @@ public:
         QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
         m_exec->setProcessEnvironment(env);
 
-        connect(m_exec, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
+        connect(m_exec.get(), static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished),
             [](int exitCode) { qDebug() << "ExitCode:" << exitCode; });
     }
-
-    ~ExecScript() { delete m_exec; }
 
     Q_INVOKABLE void execute(const QString file)
     {
@@ -33,7 +33,7 @@ public:
     }
 
 private:
-    QProcess *m_exec;
+    std::unique_ptr<QProcess> m_exec;
 };
 
 class QmlExecScriptPlugin : public QQmlExtensionPlugin
